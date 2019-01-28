@@ -1,5 +1,7 @@
 package loadbalancer
 
+import "fmt"
+
 // Worker will receive a Job and perform it
 type Worker struct {
 	jobs    chan Job
@@ -10,7 +12,8 @@ type Worker struct {
 func (w *Worker) work(done chan *Worker) {
 	for {
 		job := <-w.jobs
-		job.returnChan <- job.fn()
+		fmt.Printf("Worker %v doing job, having pending %v\n", w.idx, w.pending)
+		job.ReturnChan <- job.Fn()
 		done <- w
 	}
 }

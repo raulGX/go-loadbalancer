@@ -1,6 +1,10 @@
 package loadbalancer
 
-import "container/heap"
+import (
+	"container/heap"
+)
+
+const JOB_BUFFER_LENGTH = 10
 
 // Pool made of a slice of workers
 type Pool []*Worker
@@ -11,7 +15,8 @@ type LoadBalancer struct {
 	done       chan *Worker
 }
 
-func (b *LoadBalancer) balance(jobChan chan Job) {
+// Balance multiplexes workers
+func (b *LoadBalancer) Balance(jobChan chan Job) {
 	for {
 		select {
 		case todo := <-jobChan:
@@ -40,7 +45,7 @@ func CreateBalancer(numWorker int) *LoadBalancer {
 	done := make(chan *Worker, numWorker)
 	b := &LoadBalancer{make(Pool, 0, numWorker), done}
 	for i := 0; i < numWorker; i++ {
-		w := &Worker{make(chan Job), 0, i}
+		w := &Worker{make(chan Job, JOB_BUFFER_LENGTH), 0, i}
 		heap.Push(&b.workerPool, w)
 		go w.work(done)
 	}
